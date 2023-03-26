@@ -1,4 +1,3 @@
-
 import { Log } from 'cmd430-utils'
 import { TCPClient } from './tcpClient.js'
 import { config } from './loadConfig.js'
