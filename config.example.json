@@ -1,0 +1,14 @@
+{
+  "ais": {
+    "port": 10110,
+    "host": "123.456.789.0"
+  },
+  "marineTraffic": {
+    "port": 12345,
+    "host": "123.456.789.0"
+  },
+  "replay": {
+    "enabled": false,
+    "data": "AIS.log"
+  }
+}

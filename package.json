@@ -1,0 +1,13 @@
+{
+  "name": "ais-sender",
+  "version": "1.0.0",
+  "description": "Send AIS data from AIS TCP Stream to Marine Traffic",
+  "main": "index.js",
+  "type": "module",
+  "author": "bred/cmd430",
+  "license": "ISC",
+  "dependencies": {
+    "ais-stream-decoder": "^2.1.2",
+    "cmd430-utils": "github:cmd430/cmd430-utils"
+  }
+}
