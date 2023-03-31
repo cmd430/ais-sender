@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { createReadStream } from 'node:fs'
 import { createInterface } from 'node:readline'
 import { setTimeout } from 'node:timers/promises'
-import { default as aisDecoder } from 'ais-stream-decoder'
+import { AISDecoder } from './lib/aisDecoder.js'
 import { Log } from 'cmd430-utils'
 import { config } from './loadConfig.js'
 
@@ -63,7 +63,16 @@ class MarineTraffic extends Server {
 
     this.on('connection', async MARINETRAFFIC_CLIENT => {
       mtDebug('Started Marine Traffic Receiver')
-      MARINETRAFFIC_CLIENT.on('data', data => AIS_DECODER.write(data))
+      MARINETRAFFIC_CLIENT.on('data', data => {
+        const aisMessage = new AISDecoder(data.toString())
+        if (aisMessage.isValid()) {
+          aisDebug('Received Valid AIS Message:', aisMessage)
+        } else {
+          const err = aisMessage.errorMessage()
+          aisDebug('Received Invalid AIS Message:', aisMessage)
+          if (err) aisDebug('AIS Error Message:', err)
+        }
+      })
     })
     this.on('error', err => {
       mtError(err)
@@ -89,9 +98,6 @@ const AIS_FILE = join(process.cwd(), 'replays', config.replay.data)
 
 const MARINETRAFFIC_SERVER = new MarineTraffic(MARINETRAFFIC_PORT)
 const AIS_REPLAY = new AISReplay(AIS_PORT, AIS_FILE)
-const AIS_DECODER = new aisDecoder.default()
 
-AIS_DECODER.on('data', msg => mtDebug('Received AIS Message:', JSON.parse(msg)))
-AIS_DECODER.on('error', err => mtError(err))
 MARINETRAFFIC_SERVER.listen()
 AIS_REPLAY.listen()

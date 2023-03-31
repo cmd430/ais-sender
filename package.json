@@ -7,7 +7,6 @@
   "author": "bred/cmd430",
   "license": "ISC",
   "dependencies": {
-    "ais-stream-decoder": "^2.1.2",
     "cmd430-utils": "github:cmd430/cmd430-utils"
   }
 }
