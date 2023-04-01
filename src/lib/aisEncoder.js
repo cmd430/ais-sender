@@ -48,7 +48,7 @@ export class AISEncoder {
         this.#PutInt(cog, 112, 12)
         const hdg = parseInt(msg.hdg)|| parseInt(msg.cog)
         this.#PutInt(hdg, 124, 9)
-        this.#PutInt (60,  133, 6)
+        this.#PutInt (60, 133, 6)
         this.#payloadSize = 168
         break
       } case 5: {
@@ -57,18 +57,18 @@ export class AISEncoder {
 //      1 = station compliant with Recommendation ITU-R M.1371-3
 //      2-3 = station compliant with future editions
         this.#PutInt(1, 38, 2)
-        this.#PutInt(msg.imo ,40, 30)
+        this.#PutInt(msg.imo, 40, 30)
         this.#PutStr(msg.callsign, 70, 42)
         this.#PutStr(msg.shipname, 112, 120)
-        this.#PutInt(msg.cargo , 232, 8)
-        this.#PutInt(msg.dimA , 240, 9)
-        this.#PutInt(msg.dimB , 249, 9)
-        this.#PutInt(msg.dimC , 258, 6)
-        this.#PutInt(msg.dimD , 264, 6)
-        this.#PutInt(msg.etaMo , 274, 4)
-        this.#PutInt(msg.etaDay , 278, 5)
-        this.#PutInt(msg.etaHr , 283, 5)
-        this.#PutInt(msg.etaMin , 288, 6)
+        this.#PutInt(msg.cargo, 232, 8)
+        this.#PutInt(msg.dimA, 240, 9)
+        this.#PutInt(msg.dimB, 249, 9)
+        this.#PutInt(msg.dimC, 258, 6)
+        this.#PutInt(msg.dimD, 264, 6)
+        this.#PutInt(msg.etaMo, 274, 4)
+        this.#PutInt(msg.etaDay, 278, 5)
+        this.#PutInt(msg.etaHr, 283, 5)
+        this.#PutInt(msg.etaMin, 288, 6)
         const draught = parseInt(msg.draught * 10)
         this.#PutInt((parseInt(draught * 10)), 294, 8)
         this.#PutStr(msg.destination, 302, 120)
