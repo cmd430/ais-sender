@@ -4,11 +4,13 @@ import { config } from '../loadConfig.js'
 
 export class AISGenerator extends EventEmittor {
 
+  /* eslint-disable lines-between-class-members */
   #positionReportInterval = null
   #staticDataReportInterval = null
   #staticDataReportTimeout = null
   #positionReport
   #staticDataReport
+  /* eslint-enable lines-between-class-members */
 
   constructor () {
     super()
@@ -41,7 +43,8 @@ export class AISGenerator extends EventEmittor {
     this.emit('finished')
   }
 
-  * #positionReportGenerator () { // Should Call every 3min
+  /* eslint-disable class-methods-use-this */
+  *#positionReportGenerator () { // Should Call every 3min
     while (true) {
       yield new AISEncoder({
         channel: config.debug.generatorData.channel,
@@ -59,7 +62,7 @@ export class AISGenerator extends EventEmittor {
     }
   }
 
-  * #staticDataReportGenerator () { // Should Call every 6min + 30sec
+  *#staticDataReportGenerator () { // Should Call every 6min + 30sec
     while (true) {
       yield new AISEncoder({ // Message 1
         channel: config.debug.generatorData.channel,
@@ -87,4 +90,5 @@ export class AISGenerator extends EventEmittor {
       }).nmea
     }
   }
+  /* eslint-enable class-methods-use-this */
 }

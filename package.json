@@ -8,5 +8,8 @@
   "license": "ISC",
   "dependencies": {
     "cmd430-utils": "github:cmd430/cmd430-utils"
+  },
+  "devDependencies": {
+    "eslint": "^8.37.0"
   }
 }

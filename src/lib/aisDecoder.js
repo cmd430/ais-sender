@@ -31,6 +31,7 @@ export class AISDecoder {
     26: 'Multiple Slot Binary Message With Communications State',
     27: 'Position Report For Long-Range Applications'
   }
+
   static #NAV_STATUS = {
     0:  'Under way using engine',
     1:  'At anchor',
@@ -49,7 +50,8 @@ export class AISDecoder {
     14: 'AIS-SART is active',
     15: 'Not defined (default)'
   }
-  static #VESSEL_TYPE= {
+
+  static #VESSEL_TYPE = {
     0: 'Not available (default)',
     // 1-19 Reserved for future usage
     20: 'Wing in ground (WIG), all ships of this type',
@@ -134,13 +136,16 @@ export class AISDecoder {
     99: 'Other Type, no additional information'
   }
 
+  /* eslint-disable lines-between-class-members */
   #bitarray = []
   #msglen = 0
   #payload
   #valid = false
   #error
   #immsi
+  /* eslint-enable lines-between-class-members */
 
+  /* eslint-disable complexity */
   constructor (input, session) {
     if (!isString(input)) {
       this.#error = 'Sentence is not of type string.'
@@ -168,33 +173,35 @@ export class AISDecoder {
       return
     }
 
-    // the input string is part of a multipart message, make sure we were
-    // passed a session object.
-    const message_count = Number(nmea[1])
-    const message_id = Number(nmea[2])
-    const sequence_id = nmea[3].length > 0 ? Number(nmea[3]) : NaN
-    if (message_count > 1) {
+    /*
+     * the input string is part of a multipart message, make sure we were
+     * passed a session object.
+     */
+    const messageCount = Number(nmea[1])
+    const messageId = Number(nmea[2])
+    const sequenceId = nmea[3].length > 0 ? Number(nmea[3]) : NaN
+    if (messageCount > 1) {
       if (!isObject(session)) {
         this.#error = 'A session object is required to maintain state for decoding multipart AIS messages.'
         return
       }
-      if (message_id > 1) {
+      if (messageId > 1) {
         if (nmea[0] !== session.formatter) {
           this.#error = 'Sentence does not match formatter of current session.'
           return
         }
-        if (session[message_id - 1] === undefined) {
+        if (session[messageId - 1] === undefined) {
           this.#error = 'Session is missing prior message part, cannot parse partial AIS message.'
           return
         }
-        if (session.sequence_id !== sequence_id) {
+        if (session.sequenceId !== sequenceId) {
           this.#error = 'Session IDs do not match. Cannot recontruct AIS message.'
           return
         }
       } else {
         session.formatter = nmea[0]
-        session.message_count = message_count
-        session.sequence_id = sequence_id
+        session.messageCount = messageCount
+        session.sequenceId = sequenceId
       }
     }
 
@@ -202,30 +209,30 @@ export class AISDecoder {
     this.#msglen = this.#payload.length
     this.channel = nmea[4]
 
-    if (message_count > 1) {
-        session[message_id] = {
-          payload: this.#payload,
-          length: this.#msglen
-        }
+    if (messageCount > 1) {
+      session[messageId] = {
+        payload: this.#payload,
+        length: this.#msglen
+      }
 
-        if (message_id < message_count) return
+      if (messageId < messageCount) return
 
-        const payloads = []
-        let len = 0
-        for(let i = 1; i <= session.message_count; ++i) {
-          payloads.push(session[i].payload)
-          len += session[i].length
-        }
+      const payloads = []
+      let len = 0
+      for (let i = 1; i <= session.messageCount; ++i) {
+        payloads.push(session[i].payload)
+        len += session[i].length
+      }
 
-        this.#payload = Buffer.concat(payloads, len)
-        this.#msglen = this.#payload.length
+      this.#payload = Buffer.concat(payloads, len)
+      this.#msglen = this.#payload.length
     }
 
     for (let i = 0; i < this.#msglen; i++) {
       let byte = this.#payload[i]
 
       if ((byte < 0x30) || (byte > 0x77)) return
-      if ((0x57 < byte) && (byte < 0x60)) return
+      if ((byte > 0x57) && (byte < 0x60)) return
 
       byte += 0x28
 
@@ -235,17 +242,17 @@ export class AISDecoder {
         byte += 0x28
       }
 
-      this.#bitarray[i]=byte
+      this.#bitarray[i] = byte
     }
 
-    this.aistype = this.#GetInt (0, 6)
-    this.repeat = this.#GetInt (6, 2)
-    this.#immsi = this.#GetInt (8, 30)
-    this.mmsi = ('000000000' + this.#immsi).slice(-9)
+    this.aistype = this.#GetInt(0, 6)
+    this.repeat = this.#GetInt(6, 2)
+    this.#immsi = this.#GetInt(8, 30)
+    this.mmsi = (`000000000${this.#immsi}`).slice(-9)
 
     switch (this.aistype) {
-      case 1: {}
-      case 2: {}
+      case 1:
+      case 2:
       case 3: { // class A position report
         this.class = 'A'
         this.navstatus = this.#GetInt(38, 4)
@@ -258,55 +265,31 @@ export class AISDecoder {
         if (lat & 0x04000000) lat |= 0xf8000000
         lat = parseFloat(lat / 600000)
 
-        if ((lon <= 180.) && (lat <= 90.)) {
+        if ((lon <= 180.0) && (lat <= 90.0)) {
           this.lon = lon
           this.lat = lat
           this.#valid = true
         } else {
           this.#valid = false
         }
-        this.rot = this.#GetInt(42, 8, true)        // Rate of turn
-        this.sog = this.#GetInt(50, 10) / 10        //speed over ground
-        this.cog = this.#GetInt(116, 12) / 10       //course over ground
+        this.rot = this.#GetInt(42, 8, true) // Rate of turn
+        this.sog = this.#GetInt(50, 10) / 10 //speed over ground
+        this.cog = this.#GetInt(116, 12) / 10 //course over ground
         this.hdg = parseFloat(this.#GetInt(128, 9)) //magnetic heading
         this.utc = this.#GetInt(137, 6)
         this.smi = this.#GetInt(143, 2)
         break
       } case 18: { // class B position report
-        this.class  = 'B'
-        let lon = this.#GetInt(57, 28 )
-        if (lon & 0x08000000 ) lon |= 0xf0000000
-        lon = parseFloat(lon / 600000)
-
-        let lat = this.#GetInt(85, 27 )
-        if( lat & 0x04000000 ) lat |= 0xf8000000
-        lat = parseFloat(lat / 600000)
-
-        if ((lon <= 180.) && (lat <= 90.)) {
-          this.lon = lon
-          this.lat = lat
-          this.#valid = true
-        } else {
-          this.#valid = false
-        }
-
-        this.sog = this.#GetInt(46, 10) / 10        //speed over ground
-        this.cog = this.#GetInt(112, 12) / 10       //course over ground
-        this.hdg = parseFloat(this.#GetInt(124, 9)) //magnetic heading
-        this.utc = this.#GetInt(134, 6)
-        break
-      } case 19: { // Extended class B position report
-        this.class  = 'B'
-
+        this.class = 'B'
         let lon = this.#GetInt(57, 28)
-        if (lon & 0x08000000 ) lon |= 0xf0000000
+        if (lon & 0x08000000) lon |= 0xf0000000
         lon = parseFloat(lon / 600000)
 
         let lat = this.#GetInt(85, 27)
         if (lat & 0x04000000) lat |= 0xf8000000
         lat = parseFloat(lat / 600000)
 
-        if ((lon <= 180.) && (lat <= 90.)) {
+        if ((lon <= 180.0) && (lat <= 90.0)) {
           this.lon = lon
           this.lat = lat
           this.#valid = true
@@ -314,8 +297,32 @@ export class AISDecoder {
           this.#valid = false
         }
 
-        this.sog = this.#GetInt(46, 10) / 10        //speed over ground
-        this.cog = this.#GetInt(112, 12) / 10       //course over ground
+        this.sog = this.#GetInt(46, 10) / 10 //speed over ground
+        this.cog = this.#GetInt(112, 12) / 10 //course over ground
+        this.hdg = parseFloat(this.#GetInt(124, 9)) //magnetic heading
+        this.utc = this.#GetInt(134, 6)
+        break
+      } case 19: { // Extended class B position report
+        this.class = 'B'
+
+        let lon = this.#GetInt(57, 28)
+        if (lon & 0x08000000) lon |= 0xf0000000
+        lon = parseFloat(lon / 600000)
+
+        let lat = this.#GetInt(85, 27)
+        if (lat & 0x04000000) lat |= 0xf8000000
+        lat = parseFloat(lat / 600000)
+
+        if ((lon <= 180.0) && (lat <= 90.0)) {
+          this.lon = lon
+          this.lat = lat
+          this.#valid = true
+        } else {
+          this.#valid = false
+        }
+
+        this.sog = this.#GetInt(46, 10) / 10 //speed over ground
+        this.cog = this.#GetInt(112, 12) / 10 //course over ground
         this.hdg = parseFloat(this.#GetInt(124, 9)) //magnetic heading
         this.utc = this.#GetInt(133, 6)
         this.shipname = this.#GetStr(143, 120).trim()
@@ -329,13 +336,16 @@ export class AISDecoder {
         break
       } case 5: {
         this.class = 'A'
-//      Get the AIS Version indicator
-//      0 = station compliant with Recommendation ITU-R M.1371-1
-//      1 = station compliant with Recommendation ITU-R M.1371-3 (or later)
-//      2 = station compliant with Recommendation ITU-R M.1371-5 (or later)
-//      3 = station compliant with future editions
-        const AIS_version_indicator = this.#GetInt(38, 2)
-        if (AIS_version_indicator < 3) {
+
+        /*
+         *      Get the AIS Version indicator
+         *      0 = station compliant with Recommendation ITU-R M.1371-1
+         *      1 = station compliant with Recommendation ITU-R M.1371-3 (or later)
+         *      2 = station compliant with Recommendation ITU-R M.1371-5 (or later)
+         *      3 = station compliant with future editions
+         */
+        const AISVersionIndicator = this.#GetInt(38, 2)
+        if (AISVersionIndicator < 3) {
           this.imo = this.#GetInt(40, 30)
           this.callsign = this.#GetStr(70, 42).trim()
           this.shipname = this.#GetStr(112, 120).trim()
@@ -348,7 +358,7 @@ export class AISDecoder {
           this.etaDay = this.#GetInt(278, 5)
           this.etaHr = this.#GetInt(283, 5)
           this.etaMin = this.#GetInt(288, 6)
-          this.draught = this.#GetInt(294, 8 ) / 10.0
+          this.draught = this.#GetInt(294, 8) / 10.0
           this.destination = this.#GetStr(302, 120).trim()
           this.length = this.dimA + this.dimB
           this.width = this.dimC + this.dimD
@@ -356,19 +366,19 @@ export class AISDecoder {
         }
         break
       } case 24: { // Vesel static information
-        this.class='B'
+        this.class = 'B'
         this.part = this.#GetInt(38, 2)
 
-        if (0 === this.part) {
+        if (this.part === 0) {
           this.shipname = this.#GetStr(40, 120).trim()
           this.#valid = true
-        } else if ( this.part === 1) {
+        } else if (this.part === 1) {
           this.cargo = this.#GetInt(40, 8)
           this.callsign = this.#GetStr(90, 42).trim()
 
           if (parseInt(this.#immsi / 10000000) === 98) {
-            const mothership  = this.#GetInt (132, 30)
-            this.mothership = ('000000000' + mothership).slice(-9)
+            const mothership = this.#GetInt(132, 30)
+            this.mothership = (`000000000${mothership}`).slice(-9)
           } else {
             this.dimA = this.#GetInt(132, 9)
             this.dimB = this.#GetInt(141, 9)
@@ -377,21 +387,21 @@ export class AISDecoder {
             this.length = this.dimA + this.dimB
             this.width = this.dimC + this.dimD
           }
-          this.#valid  = true
+          this.#valid = true
         }
         break
-      } case 4: {  // base station
-      } case 11: { // UTC/Date Response
+      } case 4: // base station
+      case 11: { // UTC/Date Response
         this.class = '-'
         let lon = this.#GetInt(79, 28)
         if (lon & 0x08000000) lon |= 0xf0000000
-        lon = parseFloat (lon / 600000)
+        lon = parseFloat(lon / 600000)
 
         let lat = this.#GetInt(107, 27)
         if (lat & 0x04000000) lat |= 0xf8000000
         lat = parseFloat(lat / 600000)
 
-        if ((lon <= 180.) && (lat <= 90.)) {
+        if ((lon <= 180.0) && (lat <= 90.0)) {
           this.lon = lon
           this.lat = lat
           this.#valid = true
@@ -399,7 +409,7 @@ export class AISDecoder {
           this.#valid = false
         }
         break
-      } case 9: {// sar aircraft
+      } case 9: { // sar aircraft
         this.class = '-'
         this.alt = this.#GetInt(38, 12)
 
@@ -411,7 +421,7 @@ export class AISDecoder {
         if (lat & 0x04000000) lat |= 0xf8000000
         lat = parseFloat(lat / 600000)
 
-        if ((lon <= 180.) && (lat <= 90.)) {
+        if ((lon <= 180.0) && (lat <= 90.0)) {
           this.lon = lon
           this.lat = lat
           this.#valid = true
@@ -420,7 +430,7 @@ export class AISDecoder {
         }
 
         this.sog = parseFloat(this.#GetInt(50, 10)) //speed over ground
-        this.cog = this.#GetInt(116, 12) / 10       //course over ground
+        this.cog = this.#GetInt(116, 12) / 10 //course over ground
         break
       } case 21: { // aid to navigation
         this.class = '-'
@@ -428,14 +438,14 @@ export class AISDecoder {
         this.shipname = this.#GetStr(43, 120).trim()
 
         let lon = this.#GetInt(164, 28)
-        if (lon & 0x08000000 ) lon |= 0xf0000000
+        if (lon & 0x08000000) lon |= 0xf0000000
         lon = parseFloat(lon / 600000)
 
         let lat = this.#GetInt(192, 27)
-        if( lat & 0x04000000 ) lat |= 0xf8000000
-        lat = parseFloat (lat / 600000)
+        if (lat & 0x04000000) lat |= 0xf8000000
+        lat = parseFloat(lat / 600000)
 
-        if ((lon <= 180.) && (lat <= 90.)) {
+        if ((lon <= 180.0) && (lat <= 90.0)) {
           this.lon = lon
           this.lat = lat
           this.#valid = true
@@ -453,13 +463,13 @@ export class AISDecoder {
         this.offpos = this.#GetInt(259, 1)
         this.virtual = this.#GetInt(269, 1)
 
-        const len = parseInt(((this.#bitarray.length - 272 / 6) / 6 ) * 6) * 6
+        const len = parseInt((((this.#bitarray.length - 272) / 6) / 6) * 6) * 6
         this.txt = this.#GetStr(272 , len).trim()
         break
       } case 14: { // text msg
         this.class = '-'
         if (this.#bitarray.length > 40 / 6) {
-          const len = parseInt(((this.#bitarray.length - 40 / 6 ) / 6 ) * 6) * 6
+          const len = parseInt((((this.#bitarray.length - 40) / 6) / 6) * 6) * 6
           this.txt = this.#GetStr(40, len).trim()
           this.#valid = true
         }
@@ -468,17 +478,17 @@ export class AISDecoder {
         this.dac = this.#GetInt(40, 10)
         this.fid = this.#GetInt(50, 6)
         // Inland ship static and voyage related data
-        if (this.dac === 200 && this.fid === 10 ) {
+        if (this.dac === 200 && this.fid === 10) {
           this.class = '-'
           this.ENI = this.#GetStr(56, 48).trim()
-          this.length = parseFloat(this.#GetInt(104, 13)) / 10.
-          this.width = parseFloat(this.#GetInt(117, 10)) / 10.
+          this.length = parseFloat(this.#GetInt(104, 13)) / 10.0
+          this.width = parseFloat(this.#GetInt(117, 10)) / 10.0
           this.draught = parseFloat(this.#GetInt(144, 11)) / 100.0
           this.shiptypeERI = this.#GetInt(127, 14)
           this.#valid = true
         }
         break
-      } case 27: {// Long Range AIS Broadcast message
+      } case 27: { // Long Range AIS Broadcast message
         this.class = '-'
         this.navstatus = this.#GetInt(40, 4)
 
@@ -488,7 +498,7 @@ export class AISDecoder {
         let lat = this.#GetInt(62, 17)
         lat = parseFloat(lat) / 600
 
-        if ((lon <= 180.) && (lat <= 90.)) {
+        if ((lon <= 180.0) && (lat <= 90.0)) {
           this.lon = lon
           this.lat = lat
           this.#valid = true
@@ -506,7 +516,9 @@ export class AISDecoder {
 
     if (session) this.session = session
   }
+  /* eslint-enable complexity */
 
+  /* eslint-disable class-methods-use-this */
   #validateChecksum (input) {
     if (isString(input)) {
       const loc1 = input.indexOf('!')
@@ -518,25 +530,26 @@ export class AISDecoder {
 
         let sum = 0
         for (let i = 0; i < body.length; i++) {
-          sum ^= body.charCodeAt(i)  //xor based checksum
+          sum ^= body.charCodeAt(i) //xor based checksum
         }
 
         let hex = sum.toString(16).toUpperCase()
-        if (hex.length === 1) hex = '0' + hex      //single digit hex needs preceding 0, '0F'
+        if (hex.length === 1) hex = `0${hex}` //single digit hex needs preceding 0, '0F'
 
         return (checksum === hex)
       }
     }
     return false
   }
+  /* eslint-enable class-methods-use-this */
 
   #GetInt (start, len, signed) {
     let acc = 0
-    let cp, cx,c0, cs
+    let c0, cp,cs, cx
 
-    for(let i = 0; i < len; i++) {
-      acc  = acc << 1;
-      cp = parseInt ((start + i) / 6)
+    for (let i = 0; i < len; i++) {
+      acc <<= 1
+      cp = parseInt((start + i) / 6)
       cx = this.#bitarray[cp]
       cs = 5 - ((start + i) % 6)
       c0 = (cx >> cs) & 1
@@ -550,30 +563,29 @@ export class AISDecoder {
   }
 
   #GetStr (start, len) {
-    if (this.#bitarray.length < (start + len) /6) {
-      len = parseInt(( ( this.#bitarray.length - start/6 ) / 6 ) * 6)*6;
+    if (this.#bitarray.length < (start + len) / 6) {
+      len = parseInt((((this.#bitarray.length - start) / 6) / 6) * 6) * 6
     }
 
     if (len < 0) return ''
 
-    const buffer = new Buffer.alloc(len/6)
+    const buffer = new Buffer.alloc(len / 6)
 
-    let cp, cx, cs, c0
+    let c0, cp, cx
     let acc = 0
     let k = 0
     let i = 0
 
     while (i < len) {
-      acc=0
+      acc = 0
 
-      for (let j=0 ; j<6 ; j++) {
-         acc  = acc << 1;
-         cp =  parseInt ((start + i) / 6)
-         cx = this.#bitarray[cp]
-         cs = 5 - ((start + i) % 6)
-         c0 = (cx >> (5 - ((start + i) % 6))) & 1
-         acc |= c0
-         i++
+      for (let j = 0; j < 6; j++) {
+        acc <<= 1
+        cp = parseInt((start + i) / 6)
+        cx = this.#bitarray[cp]
+        c0 = (cx >> (5 - ((start + i) % 6))) & 1
+        acc |= c0
+        i++
       }
 
       buffer[k] = acc
@@ -588,7 +600,7 @@ export class AISDecoder {
       k++
     }
 
-    return (buffer.toString ('utf8',0, k))
+    return (buffer.toString('utf8',0, k))
   }
 
   GetNavStatus () {

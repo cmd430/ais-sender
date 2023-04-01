@@ -3,18 +3,22 @@ import { setTimeout } from 'node:timers/promises'
 
 export class TCPClient extends Socket {
 
+  /* eslint-disable lines-between-class-members */
   #attempts = 0
   #maxDealySeconds = 60
   #port
   #host
+  /* eslint-enable lines-between-class-members */
 
-  constructor(port, host) {
+  constructor (port, host) {
     super()
 
     this.#port = port
     this.#host = host
 
-    this.on('connect', () => this.#attempts = 0)
+    this.on('connect', () => {
+      this.#attempts = 0
+    })
     this.on('error', () => this.reconnect())
   }
 

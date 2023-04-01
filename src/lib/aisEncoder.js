@@ -1,8 +1,10 @@
 export class AISEncoder {
 
+  /* eslint-disable lines-between-class-members */
   #payload = new Buffer.alloc(425).fill(0x0)
   #payloadSize = 0
   #nmea = []
+  /* eslint-enable lines-between-class-members */
 
   constructor (msg) {
     this.#PutInt(msg.aistype, 0, 6)
@@ -11,8 +13,8 @@ export class AISEncoder {
 
     let lat, lon
     switch (msg.aistype) {
-      case 1: {}
-      case 2: {}
+      case 1:
+      case 2:
       case 3: { // class A position report
         this.#PutInt(msg.navstatus, 38, 4)
         lon = parseInt(msg.lon * 600000)
@@ -29,8 +31,8 @@ export class AISEncoder {
         this.#PutInt(cog, 116, 12)
         const hdg = parseInt(msg.hdg) || parseInt(msg.cog)
         this.#PutInt(hdg, 128, 9)
-        this.#PutInt (60, 137, 6)
-        this.#PutInt (msg.smi, 143, 2)
+        this.#PutInt(60, 137, 6)
+        this.#PutInt(msg.smi, 143, 2)
         this.#payloadSize = 168
         break
       } case 18: { // class B position report
@@ -46,16 +48,19 @@ export class AISEncoder {
         this.#PutInt(lat, 85, 27)
         const cog = parseInt(msg.cog * 10)
         this.#PutInt(cog, 112, 12)
-        const hdg = parseInt(msg.hdg)|| parseInt(msg.cog)
+        const hdg = parseInt(msg.hdg) || parseInt(msg.cog)
         this.#PutInt(hdg, 124, 9)
-        this.#PutInt (60, 133, 6)
+        this.#PutInt(60, 133, 6)
         this.#payloadSize = 168
         break
       } case 5: {
-//      Get the AIS Version indicator
-//      0 = station compliant with Recommendation ITU-R M.1371-1
-//      1 = station compliant with Recommendation ITU-R M.1371-3
-//      2-3 = station compliant with future editions
+
+        /*
+         *      Get the AIS Version indicator
+         *      0 = station compliant with Recommendation ITU-R M.1371-1
+         *      1 = station compliant with Recommendation ITU-R M.1371-3
+         *      2-3 = station compliant with future editions
+         */
         this.#PutInt(1, 38, 2)
         this.#PutInt(msg.imo, 40, 30)
         this.#PutStr(msg.callsign, 70, 42)
@@ -77,11 +82,11 @@ export class AISEncoder {
       } case 21: {
         this.#PutInt(msg.aid_type, 38, 5)
         this.#PutStr(msg.atonname, 43, 120)
-        const accuracy= parseInt(msg.accuracy)
+        const accuracy = parseInt(msg.accuracy)
         this.#PutInt(accuracy, 163, 1)
         lon = parseInt(msg.lon * 600000)
         if (lon < 0) lon |= 0x08000000
-        this.#PutInt(lon, 164, 28 )
+        this.#PutInt(lon, 164, 28)
         lat = parseInt(msg.lat * 600000)
         if (lat < 0) lat |= 0x04000000
         this.#PutInt(lat, 192, 27)
@@ -134,41 +139,41 @@ export class AISEncoder {
     }
 
     const nmea = []
-    nmea [0] = msg.own === true ? '!AIVDO' : '!AIVDM'
-    nmea [1] = '1'
-    nmea [2] = '1'
-    nmea [3] = ''
-    nmea [4] = 'A'
-    nmea [5] = this.#payload.toString('utf8', 0, size)
-    nmea [6] = 0
+    nmea[0] = msg.own === true ? '!AIVDO' : '!AIVDM'
+    nmea[1] = '1'
+    nmea[2] = '1'
+    nmea[3] = ''
+    nmea[4] = 'A'
+    nmea[5] = this.#payload.toString('utf8', 0, size)
+    nmea[6] = 0
 
     const packet = nmea.toString()
 
     let checksum = 0
     for (let i = 1; i < packet.length; i++) {
-      checksum = checksum ^ packet.charCodeAt(i)
+      checksum ^= packet.charCodeAt(i)
     }
 
     if (checksum < 16) {
-      this.#nmea = packet + '*0' + checksum.toString(16).toUpperCase()
+      this.#nmea = `${packet}*0${checksum.toString(16).toUpperCase()}`
     } else {
-      this.#nmea = packet + '*' + checksum.toString(16).toUpperCase()
+      this.#nmea = `${packet}*${checksum.toString(16).toUpperCase()}`
     }
 
     this.nmea = this.#nmea
   }
 
   #PutInt (number, start, len) {
-    let c0, tp, ti, ts, t0
+    let c0, t0, ti, tp, ts
     if (number === undefined) return
     // keep track of payload size
-    if ((start+len) > this.#payloadSize) this.#payloadSize = start + len
+    if ((start + len) > this.#payloadSize) this.#payloadSize = start + len
     for (let i = 0; i < len; i++) {
       c0 = (number >> i) & 1
       if (c0 !== 0) {
-        tp = parseInt((start + len - i -1) / 6)
-        ti = len - i -1
-        ts = 5 - (start + ti) % 6
+        tp = parseInt((start + len - i - 1) / 6)
+        ti = len - i - 1
+        ts = (5 - (start + ti)) % 6
         t0 = 1 << ts
         this.#payload[tp] |= t0
       }
@@ -176,11 +181,11 @@ export class AISEncoder {
   }
 
   #PutStr (string, start, len) {
-    let cx, c0, tp, ts, t0
+    let c0, cx, t0, tp, ts
 
     if (string === undefined) return
     string = string.toUpperCase()
-    if ((start+len) > this.#payloadSize) this.#payloadSize = start + len
+    if ((start + len) > this.#payloadSize) this.#payloadSize = start + len
 
     len = parseInt(len / 6)
     if (len > string.length) len = string.length

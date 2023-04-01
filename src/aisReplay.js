@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { Server } from 'node:net'
 import { join } from 'node:path'
 import { createReadStream } from 'node:fs'
@@ -8,15 +9,17 @@ import { AISDecoder } from './lib/aisDecoder.js'
 import { Log } from 'cmd430-utils'
 import { config } from './loadConfig.js'
 
-const { debug: aisDebug, error: aisError} = new Log(config.debug.enabled ? 'AIS Replay' : '')
+const { debug: aisDebug, error: aisError } = new Log(config.debug.enabled ? 'AIS Replay' : '')
 const { debug: mtDebug, error: mtError } = new Log(config.debug.enabled ? 'Marine Traffic Replay' : '')
 
 class AISReplay extends Server {
 
+  /* eslint-disable lines-between-class-members */
   #port
   #replayFile
+  /* eslint-enable lines-between-class-members */
 
-  constructor(port, replayFile) {
+  constructor (port, replayFile) {
     super()
 
     this.#port = port
@@ -63,7 +66,7 @@ class MarineTraffic extends Server {
 
   #port
 
-  constructor(port) {
+  constructor (port) {
     super()
 
     this.#port = port
