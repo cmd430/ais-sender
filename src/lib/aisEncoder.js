@@ -30,7 +30,7 @@ export class AISEncoder {
         this.#PutInt(sog, 50, 10)
         const cog = parseInt(msg.cog * 10)
         this.#PutInt(cog, 116, 12)
-        consthdg = parseInt(msg.hdg) || parseInt(msg.cog)
+        const hdg = parseInt(msg.hdg) || parseInt(msg.cog)
         this.#PutInt(hdg, 128, 9)
         this.#PutInt (60, 137, 6)
         this.#PutInt (msg.smi, 143, 2)
@@ -39,7 +39,7 @@ export class AISEncoder {
       } case 18: { // class B position report
         this.#class = 'B'
         const sog = parseInt(msg.sog * 10)
-        this.#PutInt(sog,  46, 10)
+        this.#PutInt(sog, 46, 10)
         const accuracy = parseInt(msg.accuracy)
         this.#PutInt(accuracy, 56, 1)
         lon = parseInt(msg.lon * 600000)
