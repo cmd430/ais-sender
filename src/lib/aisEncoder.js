@@ -173,7 +173,7 @@ export class AISEncoder {
       if (c0 !== 0) {
         tp = parseInt((start + len - i - 1) / 6)
         ti = len - i - 1
-        ts = (5 - (start + ti)) % 6
+        ts = 5 - ((start + ti) % 6)
         t0 = 1 << ts
         this.#payload[tp] |= t0
       }
