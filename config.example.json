@@ -7,8 +7,26 @@
     "port": 12345,
     "host": "123.456.789.0"
   },
-  "replay": {
-    "enabled": false,
-    "data": "AIS.log"
+  "debug": {
+    "enabled": true,
+    "generatorData": {
+      "channel": "A",
+      "mmsi": "000000000",
+      "shipname": "BOAT",
+      "callsign": "ABC1234",
+      "dimA": 0,
+      "dimB": 0,
+      "dimC": 0,
+      "dimD": 0,
+      "cargo": 0,
+      "class": "B",
+      "lon": 0.0,
+      "lat": -0.0,
+      "sog": 0,
+      "cog": 0,
+      "hdg": 0
+    },
+    "replayMode": false,
+    "replayData": "AIS.log"
   }
 }
