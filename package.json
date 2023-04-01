@@ -11,5 +11,8 @@
   },
   "devDependencies": {
     "eslint": "^8.37.0"
-  }
+  },
+  "eslintIgnore": [
+    "ecosystem.config.cjs"
+  ]
 }
