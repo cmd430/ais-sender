@@ -19,12 +19,12 @@ export class AISGenerator extends EventEmittor {
 
   start () {
     this.#positionReportInterval = setInterval(() => {
-      this.emit('ais', this.#positionReport.next().value)
+      this.emit('nmea', this.#positionReport.next().value)
     }, 1000 * 60 * 3)
     this.#staticDataReportInterval = setInterval(() => {
-      this.emit('ais', this.#staticDataReport.next().value)
+      this.emit('nmea', this.#staticDataReport.next().value)
       this.#staticDataReportTimeout = setTimeout(() => {
-        this.emit('ais', this.#staticDataReport.next().value)
+        this.emit('nmea', this.#staticDataReport.next().value)
       }, 1000 * 8)
     }, 1000 * 60 * 6)
     this.emit('ready')
@@ -55,7 +55,7 @@ export class AISGenerator extends EventEmittor {
         cog: config.debug.generatorData.cog,
         hdg: config.debug.generatorData.hdg,
         own: true
-      }).ais
+      }).nmea
     }
   }
 
@@ -69,7 +69,7 @@ export class AISGenerator extends EventEmittor {
         shipname: config.debug.generatorData.shipname,
         part: 0,
         own: true
-      }).ais
+      }).nmea
 
       yield new AISEncoder({ // Message 2
         channel: config.debug.generatorData.channel,
@@ -84,7 +84,7 @@ export class AISGenerator extends EventEmittor {
         dimC: config.debug.generatorData.dimC,
         dimD: config.debug.generatorData.dimD,
         own: true
-      }).ais
+      }).nmea
     }
   }
 }

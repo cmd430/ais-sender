@@ -19,7 +19,7 @@ MarineTraffic.connect()
 
 const AIS = new AISGenerator()
 AIS.on('ready', () => aisInfo('Generating AIS Data'))
-AIS.on('ais', sentence => {
+AIS.on('nmea', sentence => {
   MarineTraffic.write(sentence)
   aisDebug('Sent AIS Message:', sentence)
 })

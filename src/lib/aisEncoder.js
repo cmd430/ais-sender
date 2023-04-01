@@ -3,8 +3,6 @@ export class AISEncoder {
   #payload = new Buffer.alloc(425).fill(0x0)
   #payloadSize = 0
   #nmea = []
-  #valid = false
-  #class
 
   constructor (msg) {
     this.#PutInt(msg.aistype, 0, 6)
@@ -16,7 +14,6 @@ export class AISEncoder {
       case 1: {}
       case 2: {}
       case 3: { // class A position report
-        this.#class = 'A'
         this.#PutInt(msg.navstatus, 38, 4)
         lon = parseInt(msg.lon * 600000)
         if (lon < 0) lon |= 0x08000000
@@ -37,7 +34,6 @@ export class AISEncoder {
         this.#payloadSize = 168
         break
       } case 18: { // class B position report
-        this.#class = 'B'
         const sog = parseInt(msg.sog * 10)
         this.#PutInt(sog, 46, 10)
         const accuracy = parseInt(msg.accuracy)
@@ -56,7 +52,6 @@ export class AISEncoder {
         this.#payloadSize = 168
         break
       } case 5: {
-        this.#class  = 'A'
 //      Get the AIS Version indicator
 //      0 = station compliant with Recommendation ITU-R M.1371-1
 //      1 = station compliant with Recommendation ITU-R M.1371-3
@@ -101,7 +96,6 @@ export class AISEncoder {
         this.#PutInt(msg.assigned, 270, 1)
         break
       } case 24: { // Vesel static information
-        this.#class = 'B'
         this.#PutInt(msg.part, 38, 2)
         if (msg.part === 0) {
           this.#PutStr(msg.shipname, 40, 120)
@@ -114,19 +108,15 @@ export class AISEncoder {
           this.#PutInt(msg.dimC, 150, 6)
           this.#PutInt(msg.dimD, 156, 6)
           this.#payloadSize = 168
-        } else {
-          this.#valid = false
         }
         break
       } case 25: { // single slot Binary message
-        this.#class = 'B'
         this.#PutInt(1, 38, 1)
         this.#PutInt(msg.mmsi, 40, 20)
         this.#payloadSize = 168
         break
       } default: {
-        this.#valid = false
-        return
+        break
       }
     }
 
@@ -165,8 +155,7 @@ export class AISEncoder {
       this.#nmea = packet + '*' + checksum.toString(16).toUpperCase()
     }
 
-    this.#valid = true
-    this.ais = this.#nmea
+    this.nmea = this.#nmea
   }
 
   #PutInt (number, start, len) {

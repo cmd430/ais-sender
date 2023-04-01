@@ -37,7 +37,7 @@ class AISReplay extends Server {
       } else {
         const aisGenerator = new AISGenerator()
         aisGenerator.on('ready', () => aisDebug('Generating AIS'))
-        aisGenerator.on('ais', sentence => AIS_CLIENT.write(sentence))
+        aisGenerator.on('nmea', sentence => AIS_CLIENT.write(sentence))
         aisGenerator.start()
       }
     })
