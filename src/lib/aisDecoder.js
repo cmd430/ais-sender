@@ -174,7 +174,10 @@ export class AISDecoder {
     const message_id = Number(nmea[2])
     const sequence_id = nmea[3].length > 0 ? Number(nmea[3]) : NaN
     if (message_count > 1) {
-      if (isObject(session)) throw 'A session object is required to maintain state for decoding multipart AIS messages.';
+      if (!isObject(session)) {
+        this.#error = 'A session object is required to maintain state for decoding multipart AIS messages.'
+        return
+      }
       if (message_id > 1) {
         if (nmea[0] !== session.formatter) {
           this.#error = 'Sentence does not match formatter of current session.'
@@ -500,6 +503,8 @@ export class AISDecoder {
         break
       }
     }
+
+    if (session) this.session = session
   }
 
   #validateChecksum (input) {
