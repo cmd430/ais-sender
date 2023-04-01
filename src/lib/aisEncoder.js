@@ -171,7 +171,7 @@ export class AISEncoder {
 
   #PutInt (number, start, len) {
     let c0, tp, ti, ts, t0
-    if (number  === undefined) return
+    if (number === undefined) return
     // keep track of payload size
     if ((start+len) > this.#payloadSize) this.#payloadSize = start + len
     for (let i = 0; i < len; i++) {

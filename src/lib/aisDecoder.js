@@ -176,15 +176,15 @@ export class AISDecoder {
     if (message_count > 1) {
       if (isObject(session)) throw 'A session object is required to maintain state for decoding multipart AIS messages.';
       if (message_id > 1) {
-        if(nmea[0] !== session.formatter) {
+        if (nmea[0] !== session.formatter) {
           this.#error = 'Sentence does not match formatter of current session.'
           return
         }
-        if(session[message_id - 1] === undefined) {
+        if (session[message_id - 1] === undefined) {
           this.#error = 'Session is missing prior message part, cannot parse partial AIS message.'
           return
         }
-        if(session.sequence_id !== sequence_id) {
+        if (session.sequence_id !== sequence_id) {
           this.#error = 'Session IDs do not match. Cannot recontruct AIS message.'
           return
         }
@@ -218,7 +218,7 @@ export class AISDecoder {
         this.#msglen = this.#payload.length
     }
 
-    for(let i = 0; i < this.#msglen; i++) {
+    for (let i = 0; i < this.#msglen; i++) {
       let byte = this.#payload[i]
 
       if ((byte < 0x30) || (byte > 0x77)) return
@@ -279,10 +279,10 @@ export class AISDecoder {
         if( lat & 0x04000000 ) lat |= 0xf8000000
         lat = parseFloat(lat / 600000)
 
-        if((lon <= 180.) && (lat <= 90.)) {
-            this.lon = lon
-            this.lat = lat
-            this.#valid = true
+        if ((lon <= 180.) && (lat <= 90.)) {
+          this.lon = lon
+          this.lat = lat
+          this.#valid = true
         } else {
           this.#valid = false
         }
