@@ -27,16 +27,8 @@ WORKDIR /app
 # copy the app files
 COPY . .
 
-# make sure we keep the migrations dir when we pass in the bind for local config
-# not needed because the DB is now in config dir but keeping this for my own quick ref
-# VOLUME /opt/app/database/migrations
-
 # set env
 ENV PS1="$(whoami)@$(hostname):$(pwd)\\$ "
 
 # start the app
 CMD [ "node", "index.js"]
-
-# example usage
-# sudo podman build --tag twitch-auto-claimer --build-arg ssh_prv_key="$(cat ~/.ssh/id_rsa)" --build-arg ssh_pub_key="$(cat ~/.ssh/id_rsa.pub)" .
-# sudo podman run --detach --volume ~/testConfig:/app/config --name twitch-auto-claimer twitch-auto-claimer
