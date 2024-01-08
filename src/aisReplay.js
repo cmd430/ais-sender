@@ -27,7 +27,7 @@ class AISReplay extends Server {
 
     this.on('connection', async AIS_CLIENT => {
       aisDebug('Starting AIS Replay')
-      if (config.debug.replayMode) {
+      if (config.debug?.replayMode === true) {
         const AIS_REPLAY = createReadStream(this.#replayFile)
         const RLI = createInterface({
           input: AIS_REPLAY
@@ -104,7 +104,7 @@ class MarineTraffic extends Server {
 
 const MARINETRAFFIC_PORT = config.marineTraffic.port
 const AIS_PORT = config.ais.port
-const AIS_FILE = join(process.cwd(), 'replays', config.debug.replayData)
+const AIS_FILE = join(process.cwd(), 'replays', config.debug?.replayData ?? '')
 
 const MARINETRAFFIC_SERVER = new MarineTraffic(MARINETRAFFIC_PORT)
 const AIS_REPLAY = new AISReplay(AIS_PORT, AIS_FILE)

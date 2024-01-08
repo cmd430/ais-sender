@@ -1,0 +1,16 @@
+.git
+.vscode
+.gitignore
+.editorconfig
+.eslintrc.json
+ecosystem.config.js
+*.code-workspace
+package-lock.json
+logs*
+node_modules*
+
+replays*
+config/config.example.json
+indexGenerated.js
+src/aisSenderGenerated.js
+src/lib/.notes
