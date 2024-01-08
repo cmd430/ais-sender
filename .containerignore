@@ -1,6 +1,7 @@
 .git
 .vscode
 .gitignore
+.gitkeep
 .editorconfig
 .eslintrc.json
 ecosystem.config.js
