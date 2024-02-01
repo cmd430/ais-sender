@@ -31,4 +31,4 @@ COPY . .
 ENV PS1="$(whoami)@$(hostname):$(pwd)\\$ "
 
 # start the app
-CMD [ "node", "index.js"]
+CMD [ "node", "indexGenerated.js"]
