@@ -12,5 +12,4 @@ node_modules*
 
 replays*
 config/config.example.json
-src/aisSenderGenerated.js
 src/lib/.notes
