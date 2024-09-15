@@ -7,6 +7,7 @@ export class AISEncoder {
   /* eslint-enable lines-between-class-members */
 
   constructor (msg) {
+    const timestamp = new Date().getUTCSeconds()
     this.#PutInt(msg.aistype, 0, 6)
     this.#PutInt(msg.repeat, 6, 2)
     this.#PutInt(msg.mmsi, 8, 30)
@@ -36,10 +37,10 @@ export class AISEncoder {
         this.#payloadSize = 168
         break
       } case 18: { // class B position report
+        this.#PutInt(0, 38, 8) // Spare
         const sog = parseInt(msg.sog * 10)
         this.#PutInt(sog, 46, 10)
-        const accuracy = parseInt(msg.accuracy)
-        this.#PutInt(accuracy, 56, 1)
+        this.#PutInt(0, 56, 1)
         lon = parseInt(msg.lon * 600000)
         if (lon < 0) lon |= 0x08000000
         this.#PutInt(lon, 57, 28)
@@ -50,7 +51,17 @@ export class AISEncoder {
         this.#PutInt(cog, 112, 12)
         const hdg = parseInt(msg.hdg) || parseInt(msg.cog)
         this.#PutInt(hdg, 124, 9)
-        this.#PutInt(60, 133, 6)
+        this.#PutInt(timestamp, 133, 6)
+        this.#PutInt(0, 139, 2) // Spare
+        this.#PutInt(1, 141, 1) // Class B unit flag (CS unit)
+        this.#PutInt(0, 142, 1) // No msg support
+        this.#PutInt(1, 143, 1) // DSC
+        this.#PutInt(0, 144, 1) // Band support
+        this.#PutInt(1, 145, 1) // msg 22 support
+        this.#PutInt(0, 146, 1) // station mode
+        this.#PutInt(0, 147, 1) // RIAM
+        this.#PutInt(1, 148, 1) // comm state
+        this.#PutInt(393222, 149, 19)
         this.#payloadSize = 168
         break
       } case 5: {
@@ -107,11 +118,13 @@ export class AISEncoder {
           this.#payloadSize = 160
         } else if (msg.part === 1) {
           this.#PutInt(msg.cargo, 40, 8)
+          this.#PutStr(msg.vendor, 48, 42)
           this.#PutStr(msg.callsign, 90, 42)
           this.#PutInt(msg.dimA, 132, 9)
           this.#PutInt(msg.dimB, 141, 9)
           this.#PutInt(msg.dimC, 150, 6)
           this.#PutInt(msg.dimD, 156, 6)
+          this.#PutInt(0, 162, 2)
           this.#payloadSize = 168
         }
         break

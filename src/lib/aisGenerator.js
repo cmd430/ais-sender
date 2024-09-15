@@ -2,6 +2,8 @@ import EventEmittor from 'node:events'
 import { AISEncoder } from './aisEncoder.js'
 import { config } from '../loadConfig.js'
 
+const isOwnMsg = true
+
 export class AISGenerator extends EventEmittor {
 
   /* eslint-disable lines-between-class-members */
@@ -20,6 +22,8 @@ export class AISGenerator extends EventEmittor {
   }
 
   start () {
+    this.emit('ready')
+
     this.#positionReportInterval = setInterval(() => {
       this.emit('nmea', this.#positionReport.next().value)
     }, 1000 * 60 * 3)
@@ -29,7 +33,10 @@ export class AISGenerator extends EventEmittor {
         this.emit('nmea', this.#staticDataReport.next().value)
       }, 1000 * 8)
     }, 1000 * 60 * 6)
-    this.emit('ready')
+
+    this.emit('nmea', this.#positionReport.next().value)
+    this.emit('nmea', this.#staticDataReport.next().value)
+    setTimeout(() => this.emit('nmea', this.#staticDataReport.next().value), 1000 * 8)
   }
 
   stop () {
@@ -57,7 +64,7 @@ export class AISGenerator extends EventEmittor {
         sog: config.debug.generatorData.sog,
         cog: config.debug.generatorData.cog,
         hdg: config.debug.generatorData.hdg,
-        own: true
+        own: isOwnMsg
       }).nmea
     }
   }
@@ -71,7 +78,7 @@ export class AISGenerator extends EventEmittor {
         mmsi: config.debug.generatorData.mmsi,
         shipname: config.debug.generatorData.shipname,
         part: 0,
-        own: true
+        own: isOwnMsg
       }).nmea
 
       yield new AISEncoder({ // Message 2
@@ -82,11 +89,12 @@ export class AISGenerator extends EventEmittor {
         part: 1,
         cargo: config.debug.generatorData.cargo,
         callsign: config.debug.generatorData.callsign,
+        vendor: config.debug.generatorData.vendor,
         dimA: config.debug.generatorData.dimA,
         dimB: config.debug.generatorData.dimB,
         dimC: config.debug.generatorData.dimC,
         dimD: config.debug.generatorData.dimD,
-        own: true
+        own: isOwnMsg
       }).nmea
     }
   }
