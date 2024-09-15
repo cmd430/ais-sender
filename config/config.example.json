@@ -14,6 +14,7 @@
       "mmsi": "000000000",
       "shipname": "BOAT",
       "callsign": "ABC1234",
+      "vendor": "4321CBA",
       "dimA": 0,
       "dimB": 0,
       "dimC": 0,
