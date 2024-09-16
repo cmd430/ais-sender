@@ -52,6 +52,19 @@ export class AISGenerator extends EventEmittor {
 
   /* eslint-disable class-methods-use-this */
   *#positionReportGenerator () { // Should Call every 3min
+    const lon = config.debug.generatorData.lon
+    const lat = config.debug.generatorData.lat
+    const sog = config.debug.generatorData.sog
+    const cog = config.debug.generatorData.hdg
+    const hdg = config.debug.generatorData.hdg
+
+    const randomNumberInRange = (min, max) => Number((Math.random() * (max - min)) + min)
+    const rangedNumber = (num, decimals = 0) => {
+      const numStr = String(num)
+      const lastDigit = Number(numStr.slice(-1))
+      return Number(Number(`${numStr.slice(0, -1)}${randomNumberInRange(lastDigit - 1, lastDigit + 1, 0)}`).toFixed(decimals))
+    }
+
     while (true) {
       yield new AISEncoder({
         channel: config.debug.generatorData.channel,
@@ -59,15 +72,16 @@ export class AISGenerator extends EventEmittor {
         repeat: 0,
         mmsi: config.debug.generatorData.mmsi,
         class: config.debug.generatorData.class,
-        lon: config.debug.generatorData.lon,
-        lat: config.debug.generatorData.lat,
-        sog: config.debug.generatorData.sog,
-        cog: config.debug.generatorData.cog,
-        hdg: config.debug.generatorData.hdg,
+        lon: lon,
+        lat: lat,
+        sog: Number(sog || (rangedNumber(sog, 0) / 10).toFixed(1)),
+        cog: rangedNumber(cog, 1),
+        hdg: rangedNumber(hdg),
         own: isOwnMsg
       }).nmea
     }
   }
+
 
   *#staticDataReportGenerator () { // Should Call every 6min + 30sec
     while (true) {

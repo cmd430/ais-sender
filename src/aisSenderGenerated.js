@@ -13,17 +13,24 @@ const MarineTraffic = new TCPClient(MARINETRAFFIC_PORT, MARINETRAFFIC_HOST)
 MarineTraffic.once('ready', () => {
   mtInfo('Connected to Marine Traffic')
   MarineTraffic.on('ready', () => mtInfo('Reconnected to Marine Traffic'))
-
-  const AIS = new AISGenerator()
-  AIS.on('ready', () => aisInfo('Generating AIS Data'))
-  AIS.on('nmea', sentence => {
-    MarineTraffic.write(sentence)
-    aisDebug('Sent AIS Message:', sentence)
-  })
-  AIS.on('error', err => aisError(err))
-  AIS.start()
 })
+MarineTraffic.on('ready', () => setTimeout(() => MarineTraffic.destroySoon(), 1000 * 30))
+MarineTraffic.on('close', () => mtInfo('Disconnected from Marine Traffic'))
 MarineTraffic.on('error', err => mtError(err))
 MarineTraffic.connect()
 
+const AIS = new AISGenerator()
+AIS.on('ready', () => aisInfo('Generating AIS Data'))
+AIS.on('nmea', sentence => {
+  const sendMessage = () => {
+    MarineTraffic.write(sentence)
+    aisInfo('Sent AIS Message:', sentence)
+  }
 
+  if (MarineTraffic.readyState === 'open' || MarineTraffic.readyState === 'writeOnly') return sendMessage()
+  if (MarineTraffic.readyState === 'closed') MarineTraffic.connect()
+
+  MarineTraffic.once('ready', () => sendMessage())
+})
+AIS.on('error', err => aisError(err))
+AIS.start()

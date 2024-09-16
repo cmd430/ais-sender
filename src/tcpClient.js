@@ -11,7 +11,11 @@ export class TCPClient extends Socket {
   /* eslint-enable lines-between-class-members */
 
   constructor (port, host) {
-    super()
+    super({
+      allowHalfOpen: false,
+      writable: true,
+      readable: false
+    })
 
     this.#port = port
     this.#host = host
