@@ -1,13 +1,10 @@
 FROM node:lts AS buildStage
 
 # Get ssh keys from build args
-ARG ssh_prv_key
-ARG ssh_pub_key
-
-# Authorize SSH Host
+ARG SSH_PRIVATE_KEY
 RUN mkdir -p /root/.ssh && chmod 0700 /root/.ssh
 RUN mkdir -p -m 600 /root/.ssh && ssh-keyscan github.com >> /root/.ssh/known_hosts
-RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && echo "$ssh_pub_key" > /root/.ssh/id_rsa.pub && chmod 600 /root/.ssh/id_rsa && chmod 600 /root/.ssh/id_rsa.pub
+RUN echo "$SSH_PRIVATE_KEY" > /root/.ssh/id_rsa && chmod 600 /root/.ssh/id_rsa && chmod 600 /root/.ssh/id_rsa.pub
 
 # create working dir for the app and cd into it
 RUN mkdir -p /app
